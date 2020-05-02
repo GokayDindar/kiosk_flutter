@@ -3,6 +3,7 @@ import '../main.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../services/time.dart';
 import 'package:http/http.dart';
+import '../services/usb.dart';
 
 
 class Loading extends StatefulWidget {
@@ -12,20 +13,21 @@ class Loading extends StatefulWidget {
 
 
 class _LoadingState extends State<Loading> {
-  
+
   splash()async{
-    await Future.delayed(Duration(seconds: 5),(){
+    await Future.delayed(Duration(seconds: 3),(){
       setState(() {
         Navigator.pushReplacementNamed(context, '/pages/home');
       });
     });
   }
-  
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     splash();
+
   }
 
   @override
@@ -51,3 +53,9 @@ class _LoadingState extends State<Loading> {
     );
   }
 }
+
+
+
+
+
+

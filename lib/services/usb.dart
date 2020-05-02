@@ -1,25 +1,19 @@
-import 'package:usb_serial/usb_serial.dart';
 import 'package:flutter/material.dart';
+import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:usb_serial/transaction.dart';
 
-
-
-class UsbService extends StatefulWidget {
-  @override
-  _UsbServiceState createState() => _UsbServiceState();
-}
-
-class _UsbServiceState extends State<UsbService> {
+class UsbService {
   bool connected = false;
-  UsbPort _port;
-  String _status;
-  int _deviceId;
-  List<Widget> _ports = [];
+  UsbPort uport;
+  UsbDevice udevice;
+  String _status = "Idle";
+  List<Widget> uports = [];
   List<Widget> _serialData = [];
   StreamSubscription<String> _subscription;
   Transaction<String> _transaction;
+  int _deviceId;
 
   Future<bool> _connectTo(device) async {
     _serialData.clear();
@@ -34,90 +28,59 @@ class _UsbServiceState extends State<UsbService> {
       _transaction = null;
     }
 
-    if (_port != null) {
-      _port.close();
-      _port = null;
+    if (uport != null) {
+      uport.close();
+      uport = null;
     }
 
     if (device == null) {
       _deviceId = null;
-      setState(() {
-        _status = "Disconnected";
-      });
+
       return true;
     }
 
-    _port = await device.create();
+    uport = await device.create();
 
-    if (!await _port.open()) {
-      setState(() {
-        _status = "Failed to open port";
-      });
+    if (!await uport.open()) {
       return false;
     }
 
     _deviceId = device.deviceId;
-    await _port.setDTR(true);
-    await _port.setRTS(true);
-    await _port.setPortParameters(
+    await uport.setDTR(true);
+    await uport.setRTS(true);
+    await uport.setPortParameters(
         115200, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
 
     _transaction = Transaction.stringTerminated(
-        _port.inputStream, Uint8List.fromList([13, 10]));
+        uport.inputStream, Uint8List.fromList([13, 10]));
 
     _subscription = _transaction.stream.listen((String line) {
-      setState(() {
-        _serialData.add(Text(line));
-        if (_serialData.length > 20) {
-          _serialData.removeAt(0);
-        }
-      });
-    });
-
-    setState(() {
-      _status = "Connected";
+      _serialData.add(Text(line));
+      if (_serialData.length > 20) {
+        _serialData.removeAt(0);
+      }
     });
     return true;
   }
 
   void _getPorts() async {
     print("_getports");
-    _ports = [];
+    uports = [];
     List<UsbDevice> devices = await UsbSerial.listDevices();
     print(devices);
-
-    setState(() {
-      print(_ports);
-    });
   }
 
-  @override
-  void initState() {
-    super.initState();
-
+  void startConnection() {
     UsbSerial.usbEventStream.listen((UsbEvent event) {
       _getPorts();
     });
 
     UsbSerial.usbEventStream.listen((UsbEvent event) {
       _status = ("Usb Event $event");
-      setState(() {
-        var _lastEvent = event;
-        _connectTo(event.device);
-      });
+      var _lastEvent = event;
+      _connectTo(event.device);
     });
 
     _getPorts();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _connectTo(null);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return UsbService();
   }
 }

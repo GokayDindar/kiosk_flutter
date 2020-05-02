@@ -23,6 +23,7 @@ dependencies:
   flutter_spinkit: ^4.1.2
   curved_navigation_bar: ^0.3.2
   usb_serial: ^0.2.4
+  sqflite:
 
   get_it: ^3.1.0
 

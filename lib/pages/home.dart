@@ -4,6 +4,10 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'userpage.dart';
 import 'settings.dart';
 import 'control.dart';
+import 'package:usb_serial/usb_serial.dart';
+import 'dart:typed_data';
+import 'dart:async';
+import 'package:usb_serial/transaction.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -11,14 +15,106 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  bool connected = false;
+  UsbPort uport;
+  UsbDevice udevice;
+  String _status = "Idle";
+  List<Widget> uports = [];
+  List<Widget> _serialData = [];
+  StreamSubscription<String> _subscription;
+  Transaction<String> _transaction;
+  int _deviceId;
+  TextEditingController _textController = TextEditingController();
   int _page = 1;
   GlobalKey _bottomNavigationKey = GlobalKey();
 
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
 
+    super.initState();
+    UsbSerial.usbEventStream.listen((UsbEvent event) {
+      _getPorts();
+    });
+
+    UsbSerial.usbEventStream.listen((UsbEvent event) {
+      _status = ("Usb Event $event");
+      setState(() {
+        var _lastEvent = event;
+        udevice = event.device;
+        _connectTo(event.device);
+      });
+    });
+
+    _getPorts();
+  }
+
+  Future<bool> _connectTo(device) async {
+    _serialData.clear();
+
+    if (_subscription != null) {
+      _subscription.cancel();
+      _subscription = null;
+    }
+
+    if (_transaction != null) {
+      _transaction.dispose();
+      _transaction = null;
+    }
+
+    if (uport != null) {
+      uport.close();
+      uport = null;
+    }
+
+    if (device == null) {
+      _deviceId = null;
+      setState(() {
+        _status = "Disconnected";
+      });
+      return true;
+    }
+
+    uport = await device.create();
+
+    if (!await uport.open()) {
+      setState(() {
+        _status = "Failed to open port";
+      });
+      return false;
+    }
+
+    _deviceId = device.deviceId;
+    await uport.setDTR(true);
+    await uport.setRTS(true);
+    await uport.setPortParameters(
+        115200, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
+
+    _transaction = Transaction.stringTerminated(
+        uport.inputStream, Uint8List.fromList([13, 10]));
+
+    _subscription = _transaction.stream.listen((String line) {
+      setState(() {
+        _serialData.add(Text(line));
+        if (_serialData.length > 20) {
+          _serialData.removeAt(0);
+        }
+      });
+    });
+
+    setState(() {
+      _status = "Connected";
+    });
+    return true;
+  }
+
+  void _getPorts() async {
+    print("_getports");
+    uports = [];
+    List<UsbDevice> devices = await UsbSerial.listDevices();
+    print(devices);
+    setState(() {
+      print(uports);
+    });
   }
 
   @override
@@ -33,7 +129,7 @@ class _HomeState extends State<Home> {
               color: Colors.lightGreen,
             ),
             Center(
-              child: Text("NO RADIATION SAFE",
+              child: Text( uport != null ? 'Status:${udevice.productName} \n' :" null",
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 35,
@@ -71,12 +167,20 @@ class _HomeState extends State<Home> {
       case 0:
         return UserPage();
       case 1:
-        return ControlPage();
+        return ControlPage(
+          port: uport,
+        );
       case 2:
-        return UsbService();
+        return Settings(
+          uport: uport,
+          udevice: udevice,
+        );
       default:
         return ControlPage();
     }
   }
+
 }
+
+
 
