@@ -15,6 +15,9 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  MaterialColor radColor = Colors.lightGreen;
+  String data;
+  String radiationStatus = "NO RADIATION SAFE";
   bool connected = false;
   UsbPort uport;
   UsbDevice udevice;
@@ -93,10 +96,19 @@ class _HomeState extends State<Home> {
         uport.inputStream, Uint8List.fromList([13, 10]));
 
     _subscription = _transaction.stream.listen((String line) {
+
       setState(() {
+        if (line == "R10"){
+          radiationStatus = "WARNING RADIATION ACTIVE";
+          radColor = Colors.red;
+        }
+        else if( line == "R00"){
+          radiationStatus = "NO RADIATION SAFE";
+          radColor = Colors.lightGreen;
+        }
         _serialData.add(Text(line));
-        if (_serialData.length > 20) {
-          _serialData.removeAt(0);
+        if (_serialData.length > 1) {
+          _serialData.clear();
         }
       });
     });
@@ -126,10 +138,10 @@ class _HomeState extends State<Home> {
           fit: StackFit.expand,
           children: <Widget>[
             Container(
-              color: Colors.lightGreen,
+              color: radColor,
             ),
             Center(
-              child: Text( uport != null ? 'Status:${udevice.productName} \n' :" null",
+              child: Text( radiationStatus,
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 35,
@@ -158,11 +170,11 @@ class _HomeState extends State<Home> {
           });
         },
       ),
-      body: sayfaGetir(),
+      body: pageLoad(),
     );
   }
 
-  sayfaGetir() {
+  pageLoad() {
     switch (_page) {
       case 0:
         return UserPage();

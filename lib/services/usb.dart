@@ -3,6 +3,7 @@ import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:usb_serial/transaction.dart';
+// not using at the moment
 
 class UsbService {
   bool connected = false;
@@ -10,13 +11,13 @@ class UsbService {
   UsbDevice udevice;
   String _status = "Idle";
   List<Widget> uports = [];
-  List<Widget> _serialData = [];
+  List<Widget> serialData = [];
   StreamSubscription<String> _subscription;
   Transaction<String> _transaction;
   int _deviceId;
 
   Future<bool> _connectTo(device) async {
-    _serialData.clear();
+    serialData.clear();
 
     if (_subscription != null) {
       _subscription.cancel();
@@ -55,9 +56,9 @@ class UsbService {
         uport.inputStream, Uint8List.fromList([13, 10]));
 
     _subscription = _transaction.stream.listen((String line) {
-      _serialData.add(Text(line));
-      if (_serialData.length > 20) {
-        _serialData.removeAt(0);
+      serialData.add(Text(line));
+      if (serialData.length > 20) {
+        serialData.removeAt(0);
       }
     });
     return true;
