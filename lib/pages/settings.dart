@@ -20,6 +20,7 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
   bool connected = false;
+  String info;
   String _status = "Idle";
   List<Widget> _ports = [];
   List<Widget> _serialData = [];
@@ -29,12 +30,18 @@ class _SettingsState extends State<Settings> {
   TextEditingController _textController = TextEditingController();
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
         home: Scaffold(
           body: Center(
               child: Column(children: <Widget>[
-                Text( widget.uport != null ? 'Status:${widget.udevice.productName} \n' :" null"),
+                Text("noi"),
                 ListTile(
                   title: TextField(
                     controller: _textController,

@@ -35,21 +35,21 @@ class _HomeState extends State<Home> {
   void initState() {
 
     super.initState();
-    UsbSerial.usbEventStream.listen((UsbEvent event) {
-      _getPorts();
-    });
 
     UsbSerial.usbEventStream.listen((UsbEvent event) {
+
       _status = ("Usb Event $event");
       setState(() {
         var _lastEvent = event;
         udevice = event.device;
         _connectTo(event.device);
+        connected = true;
       });
     });
 
     _getPorts();
   }
+
 
   Future<bool> _connectTo(device) async {
     _serialData.clear();
@@ -119,14 +119,12 @@ class _HomeState extends State<Home> {
     return true;
   }
 
-  void _getPorts() async {
+  void _getPorts() async { //gets ports also connecting
     print("_getports");
     uports = [];
     List<UsbDevice> devices = await UsbSerial.listDevices();
     print(devices);
-    setState(() {
-      print(uports);
-    });
+    if (devices.length>0 && !connected)_connectTo(devices[0]);
   }
 
   @override

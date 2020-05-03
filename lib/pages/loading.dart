@@ -15,7 +15,7 @@ class Loading extends StatefulWidget {
 class _LoadingState extends State<Loading> {
 
   splash()async{
-    await Future.delayed(Duration(seconds: 3),(){
+    await Future.delayed(Duration(seconds: 1),(){
       setState(() {
         Navigator.pushReplacementNamed(context, '/pages/home');
       });
