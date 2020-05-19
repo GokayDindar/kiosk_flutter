@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../custom_widgets/controlButton.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
+import '../foolib.dart';
 import 'dart:async';
 import 'package:usb_serial/transaction.dart';
 
@@ -21,7 +22,7 @@ class _ControlPageState extends State<ControlPage> {
       color: Colors.blueAccent,
       child: Center(
         child: Container(
-          margin: EdgeInsets.fromLTRB(50, 0, 50, 0),
+          margin: EdgeInsets.fromLTRB(50, 50, 50, 150),
           child: Table(children: [
             TableRow(children: [
               Column(
@@ -40,7 +41,7 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_left,
                       text: "HALF OPEN",
                       myfunction: () {
-                        print("fafad");
+                        showAlertDialog(context: context,header: "LOGIN REQUIRED",message:"OPERATOR LOGIN REQUIRED GO TO USERS PAGE" );
                       }),
                 ],
               ),
@@ -84,3 +85,4 @@ class _ControlPageState extends State<ControlPage> {
     );
   }
 }
+
