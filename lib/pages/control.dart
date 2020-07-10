@@ -31,7 +31,8 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.arrow_back_ios,
                       text: "FULL OPEN",
                       myfunction: () {
-                        print("fafad");
+                        String data = "open" + "\n";
+                        widget.port.write(Uint8List.fromList(data.codeUnits));
                       })
                 ],
               ),
@@ -41,7 +42,8 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_left,
                       text: "HALF OPEN",
                       myfunction: () {
-                        showAlertDialog(context: context,header: "LOGIN REQUIRED",message:"OPERATOR LOGIN REQUIRED GO TO USERS PAGE" );
+                        String data = "half-open" + "\n";
+                        widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
               ),
@@ -51,7 +53,8 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.stop,
                       text: "STOP",
                       myfunction: () {
-                        print("fafad");
+                        String data = "stop" + "\n";
+                        widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
               ),
@@ -61,7 +64,7 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_right,
                       text: "HALF CLOSE",
                       myfunction: () {
-                        String data = "off" + "\n";
+                        String data = "half-close" + "\n";
                         widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
@@ -72,7 +75,7 @@ class _ControlPageState extends State<ControlPage> {
                     icon: Icons.arrow_forward_ios,
                     text: "FULL CLOSE",
                     myfunction:() {
-                      String data = "on" + "\n";
+                      String data = "close" + "\n";
                       widget.port.write(Uint8List.fromList(data.codeUnits));
                           },
                   )

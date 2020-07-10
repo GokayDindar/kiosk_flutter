@@ -73,7 +73,7 @@ class _HomeState extends State<Home> {
   pageLoad() {
     switch (_page) {
       case 0:
-        return UserPage();
+        return 0; //UserPage();
       case 1:
         return ControlPage(
           port: widget.usb.uport,

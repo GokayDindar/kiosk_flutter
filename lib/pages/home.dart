@@ -125,8 +125,15 @@ class _HomeState extends State<Home> {
     print("_getports");
     uports = [];
     List<UsbDevice> devices = await UsbSerial.listDevices();
+
     print(devices);
-    if (devices.length > 0 && !connected) _connectTo(devices[0]);
+    if (devices.length > 0 && !connected ){
+      for(int i = 0;  i < devices.length; i++) {
+
+        if (devices[i].productName == "USB2.0-Serial") _connectTo(devices[0]);
+
+      }
+    }
   }
 
   @override
