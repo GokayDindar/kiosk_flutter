@@ -36,6 +36,7 @@ class _HomeState extends State<Home> {
   int _deviceId;
   TextEditingController _textController = TextEditingController();
   int _page = 1;
+  int bottomNavbarIndex = 1;
   GlobalKey _bottomNavigationKey = GlobalKey();
 
   @override
@@ -161,7 +162,7 @@ class _HomeState extends State<Home> {
           color: Colors.blueAccent,
           child: CurvedNavigationBar(
             key: _bottomNavigationKey,
-            index: 1,
+            index: bottomNavbarIndex,
             height: 75.0,
             items: <Widget>[
               Icon(Icons.people_outline, size: 55),
@@ -184,7 +185,12 @@ class _HomeState extends State<Home> {
           color: Colors.blueAccent,
           child: Column(
             children: <Widget>[
-              LockStatus(),
+              LockStatus((){
+                setState(() {
+                  _page = 0;
+                  bottomNavbarIndex = 0;
+                });
+              }),
               Expanded(child: pageLoad()),
             ],
           ),
@@ -211,6 +217,8 @@ class _HomeState extends State<Home> {
 }
 
 class LockStatus extends StatefulWidget {
+  Function changePage;
+  LockStatus(this.changePage);
   @override
   _LockStatusState createState() => _LockStatusState();
 }
@@ -230,12 +238,7 @@ class _LockStatusState extends State<LockStatus> {
                 StatusButton(
                   icon: lockIcon,
                   text: lockstatus,
-                  myfunction: () {
-                    setState(() {
-                      lockIcon = Icons.lock_outline;
-                      lockstatus = "CONTROL LOCKED";
-                    });
-                  }
+                  myfunction: widget.changePage,
                 ),
               ],
             ),
