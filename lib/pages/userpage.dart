@@ -6,8 +6,8 @@ import '../services/sign.dart';
 class UserPage extends StatefulWidget {
   @override
   _UserPageState createState() => _UserPageState();
-  String infoLabel = "";
-  int decisionIndex = 1, topMenu = 1;
+  String infoLabel = "", topMenuLabel = "",userName = "suser01";
+  int decisionIndex = 1, topMenu = 1,topMenuLabelStack = 1;
   bool masterPass = false, signed = false, logged = false;
 }
 
@@ -122,8 +122,20 @@ class _UserPageState extends State<UserPage> {
                                       const EdgeInsets.fromLTRB(0, 10, 20, 0),
                                   child: FlatButton(
                                     onPressed: () {
-                                      Sign().doSign(
-                                          "user0", _numpadController.rawString);
+                                      setState(() {
+                                      try {
+                                        Sign().doSign(widget.userName, _numpadController.rawString);
+                                      }
+                                      catch(e){
+                                        print(e);
+                                        widget.infoLabel="AN ERROR OCCURED DURING SIGN";
+                                      }
+                                      finally{
+                                        widget.infoLabel="         SUCCED         ";
+                                        widget.decisionIndex = 1;
+                                        _numpadController.clear();
+                                      }
+                                      });
                                     },
                                     child: Text(
                                       "SAVE",
@@ -190,10 +202,34 @@ class _UserPageState extends State<UserPage> {
               ],
             ),
           ),
-          Container(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 160, 8, 0),
-              child: Row(
+          Column(
+            children: <Widget>[
+              IndexedStack(index : widget.topMenuLabelStack,children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 100, 0, 50),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          "      ${widget.topMenuLabel}      ",
+                          style: TextStyle(
+                              fontSize: 30,
+                              color: Colors.white,
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Container()
+              ]),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   Column(
@@ -203,7 +239,7 @@ class _UserPageState extends State<UserPage> {
                         color: Colors.white,
                         onPressed: () {
                           setState(() {
-                            Sign().isSignedBefore("user0").then((onValue) {
+                            Sign().isSignedBefore(widget.userName).then((onValue) {
                               if (!onValue) {
                                 widget.topMenu = 0;
                                 widget.decisionIndex = 1;
@@ -211,6 +247,10 @@ class _UserPageState extends State<UserPage> {
                                 widget.infoLabel =
                                     "FIRST WRITE MASTER PASSWORD!\nIF YOU DONT KNOW, ASK SUPERVISER FOR HELP \nOR CALL MODEDOOR +905386896503\nDevice id:7821";
                               } else {
+                                setState(() {
+                                  widget.topMenuLabel = "SIGNED BEFORE !!!";
+                                  widget.topMenuLabelStack = 0;
+                                });
                                 print("signed before");
                               }
                             });
@@ -268,7 +308,7 @@ class _UserPageState extends State<UserPage> {
                   ),
                 ],
               ),
-            ),
+            ],
           )
         ]),
       ),
