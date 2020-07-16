@@ -1,0 +1,122 @@
+Index: lib/pages/userpage.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- lib/pages/userpage.dart	(date 1594631188980)
++++ lib/pages/userpage.dart	(date 1594631188980)
+@@ -1,21 +1,16 @@
+ import 'package:flutter/cupertino.dart';
+-import '../custom_widgets/controlButton.dart';
+-import '../custom_widgets/statusButton.dart';
+ import 'package:flutter/material.dart';
+ import 'package:flutter_numpad_widget/flutter_numpad_widget.dart';
+-import 'package:shared_preferences/shared_preferences.dart';
++import '../services/sign.dart';
++
+ 
+ class UserPage extends StatefulWidget {
+   @override
+   _UserPageState createState() => _UserPageState();
+-  static String isLogged = "";
+-  bool masterPass = false;
++  String infoLabel = "";
+   int decisionIndex = 2;
+-
+-  putSharedPref(key, value) async {
+-    SharedPreferences prefs = await SharedPreferences.getInstance();
+-    prefs.setString(key, value);
+-  }
++  bool masterPass = false,signed = false,logged = false;
++  
+ }
+ 
+ class _UserPageState extends State<UserPage> {
+@@ -23,40 +18,36 @@
+     format: NumpadFormat.NONE,
+   );
+ 
+-  Future<Null> getSharedPrefs() async {
+-    SharedPreferences prefs = await SharedPreferences.getInstance();
+-    String _isLogged = prefs.getString("UserPassword") ??
+-        "User Password havent created yet,\nTo Create,\nWrite Master Password First!";
+-    setState(() {
+-      UserPage.isLogged = _isLogged;
+-    });
+-  }
+-
+   @override
+   void initState() {
+-    print("agia sophia");
+-    getSharedPrefs();
++    super.initState();
+     this._numpadController.addListener(listener);
++     widget.signed = Sign().isSignedBefore("defaultUser");
++     print(widget.signed);
++
+   }
+ 
+ 
+   listener() {
+     print(_numpadController.rawString);
+-    if (_numpadController.rawString == "2020" && widget.masterPass == false) {
+-      print("godsake");
+-      _numpadController.clear();
+-      setState(() {
+-        UserPage.isLogged =
+-            "MASTER PASSWORD CORRECT!\nYOU ARE ABOUT TO SET USER PASSWORD\nPLEASE WRITE 4 DIGIT PASS TO CREATE!";
+-        widget.masterPass = true;
+-        widget.decisionIndex = 1;
+-      });
+-    } else if (widget.masterPass == true &&
+-        _numpadController.rawString?.length == 4) {
+-      setState(() {
+-        widget.decisionIndex = 0;
+-        widget.isLogged = "\"${_numpadController.rawString}\" WILL BE USER PASSWORD ? \n IF NOT YOU CAN EDIT NOW";
+-      });
++    int signProcess() {
++      if (_numpadController.rawString == "2020" && widget.masterPass == false) {
++        print("godsake");
++        _numpadController.clear();
++        setState(() {
++          widget.infoLabel =
++          "MASTER PASSWORD CORRECT!\nYOU ARE ABOUT TO SET USER PASSWORD\nPLEASE WRITE 4 DIGIT PASS TO CREATE!";
++          widget.masterPass = true;
++          widget.decisionIndex = 1;
++        });
++      } else if (widget.masterPass == true &&
++          _numpadController.rawString?.length == 4) {
++        setState(() {
++          widget.decisionIndex = 0;
++          widget.infoLabel = "\"${_numpadController
++              .rawString}\" WILL BE USER PASSWORD ? \n IF NOT YOU CAN EDIT NOW";
++        });
++      }
+     }
+   }
+ 
+@@ -112,7 +103,7 @@
+                             Padding(
+                               padding: const EdgeInsets.all(16.0),
+                               child: Text(
+-                                widget.isLogged,
++                                widget.infoLabel,
+                                 style: TextStyle(
+                                   fontSize: 25.0,
+                                   fontWeight: FontWeight.bold,
+@@ -136,7 +127,6 @@
+                               padding: const EdgeInsets.fromLTRB(0, 10, 20, 0),
+                               child: FlatButton(
+                                 onPressed: () {
+-                                  widget.putSharedPref("UserPassword", _numpadController.rawString);
+                                 },
+                                 child: Text(
+                                   "SAVE",
+@@ -150,7 +140,6 @@
+                               child: FlatButton(
+                                 onPressed: () {
+                                   setState(() {
+-                                    widget.isLogged=  "User Password havent created yet,\nTo Create,\nWrite Master Password First!";
+                                   });
+                                 },
+                                 child: Text(

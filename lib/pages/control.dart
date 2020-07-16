@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../custom_widgets/controlButton.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
+import '../foolib.dart';
 import 'dart:async';
 import 'package:usb_serial/transaction.dart';
 
@@ -21,7 +22,7 @@ class _ControlPageState extends State<ControlPage> {
       color: Colors.blueAccent,
       child: Center(
         child: Container(
-          margin: EdgeInsets.fromLTRB(50, 0, 50, 0),
+          margin: EdgeInsets.fromLTRB(50, 50, 50, 150),
           child: Table(children: [
             TableRow(children: [
               Column(
@@ -30,7 +31,8 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.arrow_back_ios,
                       text: "FULL OPEN",
                       myfunction: () {
-                        print("fafad");
+                        String data = "open" + "\n";
+                        widget.port.write(Uint8List.fromList(data.codeUnits));
                       })
                 ],
               ),
@@ -40,7 +42,8 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_left,
                       text: "HALF OPEN",
                       myfunction: () {
-                        print("fafad");
+                        String data = "half-open" + "\n";
+                        widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
               ),
@@ -50,7 +53,8 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.stop,
                       text: "STOP",
                       myfunction: () {
-                        print("fafad");
+                        String data = "stop" + "\n";
+                        widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
               ),
@@ -60,7 +64,7 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_right,
                       text: "HALF CLOSE",
                       myfunction: () {
-                        String data = "off" + "\n";
+                        String data = "half-close" + "\n";
                         widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
@@ -71,7 +75,7 @@ class _ControlPageState extends State<ControlPage> {
                     icon: Icons.arrow_forward_ios,
                     text: "FULL CLOSE",
                     myfunction:() {
-                      String data = "on" + "\n";
+                      String data = "close" + "\n";
                       widget.port.write(Uint8List.fromList(data.codeUnits));
                           },
                   )
@@ -84,3 +88,4 @@ class _ControlPageState extends State<ControlPage> {
     );
   }
 }
+

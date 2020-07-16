@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:worldtimeapp/custom_widgets/controlButton.dart';
 import 'userpage.dart';
 import 'settings.dart';
 import 'control.dart';
@@ -8,6 +9,13 @@ import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:usb_serial/transaction.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../custom_widgets/statusButton.dart';
+import '../foolib.dart';
+
+String lockstatus = " CONTROL UNLOCKED TAP TO LOCK";
+String radiationStatus = "NO RADIATION SAFE";
+IconData lockIcon = Icons.lock_open;
 
 class Home extends StatefulWidget {
   @override
@@ -17,7 +25,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   MaterialColor radColor = Colors.lightGreen;
   String data;
-  String radiationStatus = "NO RADIATION SAFE";
   bool connected = false;
   UsbPort uport;
   UsbDevice udevice;
@@ -29,15 +36,14 @@ class _HomeState extends State<Home> {
   int _deviceId;
   TextEditingController _textController = TextEditingController();
   int _page = 1;
+  int bottomNavbarIndex = 1;
   GlobalKey _bottomNavigationKey = GlobalKey();
 
   @override
   void initState() {
-
     super.initState();
 
     UsbSerial.usbEventStream.listen((UsbEvent event) {
-
       _status = ("Usb Event $event");
       setState(() {
         var _lastEvent = event;
@@ -46,10 +52,8 @@ class _HomeState extends State<Home> {
         connected = true;
       });
     });
-
     _getPorts();
   }
-
 
   Future<bool> _connectTo(device) async {
     _serialData.clear();
@@ -96,13 +100,11 @@ class _HomeState extends State<Home> {
         uport.inputStream, Uint8List.fromList([13, 10]));
 
     _subscription = _transaction.stream.listen((String line) {
-
       setState(() {
-        if (line == "R10"){
+        if (line == "R10") {
           radiationStatus = "WARNING RADIATION ACTIVE";
           radColor = Colors.red;
-        }
-        else if( line == "R00"){
+        } else if (line == "R00") {
           radiationStatus = "NO RADIATION SAFE";
           radColor = Colors.lightGreen;
         }
@@ -119,57 +121,80 @@ class _HomeState extends State<Home> {
     return true;
   }
 
-  void _getPorts() async { //gets ports also connecting
+  void _getPorts() async {
+    //gets ports also connecting
     print("_getports");
     uports = [];
     List<UsbDevice> devices = await UsbSerial.listDevices();
+
     print(devices);
-    if (devices.length>0 && !connected)_connectTo(devices[0]);
+    if (devices.length > 0 && !connected ){
+      for(int i = 0;  i < devices.length; i++) {
+
+        if (devices[i].productName == "USB2.0-Serial") _connectTo(devices[0]);
+
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(56),
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Container(
-              color: radColor,
-            ),
-            Center(
-              child: Text( radiationStatus,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 35,
-                      fontWeight: FontWeight.bold)),
-            ),
-          ],
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(56),
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              Container(
+                color: radColor,
+              ),
+              Center(
+                child: Text(radiationStatus,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: CurvedNavigationBar(
-        key: _bottomNavigationKey,
-        index: 1,
-        height: 75.0,
-        items: <Widget>[
-          Icon(Icons.people_outline, size: 55),
-          Icon(Icons.settings_ethernet, size: 55),
-          Icon(Icons.settings, size: 55),
-        ],
-        color: Colors.white,
-        buttonBackgroundColor: Colors.white,
-        backgroundColor: Colors.blueAccent,
-        animationCurve: Curves.easeInOut,
-        animationDuration: Duration(milliseconds: 350),
-        onTap: (index) {
-          setState(() {
-            _page = index;
-          });
-        },
-      ),
-      body: pageLoad(),
-    );
+        bottomNavigationBar: Container(
+          color: Colors.blueAccent,
+          child: CurvedNavigationBar(
+            key: _bottomNavigationKey,
+            index: bottomNavbarIndex,
+            height: 75.0,
+            items: <Widget>[
+              Icon(Icons.people_outline, size: 55),
+              Icon(Icons.settings_ethernet, size: 55),
+              Icon(Icons.settings, size: 55),
+            ],
+            color: Colors.white,
+            buttonBackgroundColor: Colors.white,
+            backgroundColor: Colors.blueAccent,
+            animationCurve: Curves.easeInOut,
+            animationDuration: Duration(milliseconds: 350),
+            onTap: (index) {
+              setState(() {
+                _page = index;
+              });
+            },
+          ),
+        ),
+        body: Container(
+          color: Colors.blueAccent,
+          child: Column(
+            children: <Widget>[
+              LockStatus((){
+                setState(() {
+                  _page = 0;
+                  bottomNavbarIndex = 0;
+                });
+              }),
+              Expanded(child: pageLoad()),
+            ],
+          ),
+        ));
   }
 
   pageLoad() {
@@ -189,8 +214,75 @@ class _HomeState extends State<Home> {
         return ControlPage();
     }
   }
-
 }
 
+class LockStatus extends StatefulWidget {
+  Function changePage;
+  LockStatus(this.changePage);
+  @override
+  _LockStatusState createState() => _LockStatusState();
+}
 
+class _LockStatusState extends State<LockStatus> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.blueAccent,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(50, 10, 50, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                StatusButton(
+                  icon: lockIcon,
+                  text: lockstatus,
+                  myfunction: widget.changePage,
+                ),
+              ],
+            ),
+            Column(
+              children: <Widget>[
+                StatusButton(
+                    icon: Icons.vpn_key,
+                    text: "PSSWD ISN'T CREATED",
+                    myfunction: () {
+                      showAlertDialog(context: context,header: "WARNING SECURITY ISSUES FOUND",message: "CONTROL PASSWORD IS NOT SET,"
+                          " GO TO USER PAGE TO SPECIFY A PASSWORD");
+                    }),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
+class RadStatus extends StatefulWidget {
+  @override
+  _RadStatusState createState() => _RadStatusState();
+}
+
+class _RadStatusState extends State<RadStatus> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Container(
+            child:
+                Text('Deliver features faster', textAlign: TextAlign.center)),
+        Container(
+            child: Text('Craft beautiful UIs', textAlign: TextAlign.center)),
+        Container(
+          child: FittedBox(
+            fit: BoxFit.contain, // otherwise the logo will be tiny
+            child: const FlutterLogo(),
+          ),
+        ),
+      ],
+    );
+  }
+}
