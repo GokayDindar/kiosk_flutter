@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class StatusButton extends StatefulWidget {
+class StatusButton extends StatefulWidget{
   final IconData icon;
   final String text;
   final myfunction;

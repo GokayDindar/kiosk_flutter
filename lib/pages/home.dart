@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -12,6 +14,7 @@ import 'package:usb_serial/transaction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../custom_widgets/statusButton.dart';
 import '../foolib.dart';
+import'../services/sign.dart';
 
 String lockstatus = " CONTROL UNLOCKED TAP TO LOCK";
 String radiationStatus = "NO RADIATION SAFE";
@@ -25,7 +28,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   MaterialColor radColor = Colors.lightGreen;
   String data;
-  bool connected = false;
+  bool connected = false,passStatus;
   UsbPort uport;
   UsbDevice udevice;
   String _status = "Idle";
@@ -35,9 +38,10 @@ class _HomeState extends State<Home> {
   Transaction<String> _transaction;
   int _deviceId;
   TextEditingController _textController = TextEditingController();
-  int _page = 1;
-  int bottomNavbarIndex = 1;
+  int _page = 1, bottomNavbarIndex = 1;
   GlobalKey _bottomNavigationKey = GlobalKey();
+  int passStatusVisibility = 0;
+
 
   @override
   void initState() {
@@ -53,6 +57,19 @@ class _HomeState extends State<Home> {
       });
     });
     _getPorts();
+    _passStatusChecker();
+  }
+
+  void _passStatusChecker(){
+    Sign().isSignedBefore(UserPage().userName).then((onValue){setState(() {
+      passStatus = onValue;
+      _passStatusVisibility(passStatus);
+    });});
+    print("_passStatusChecker triggered");
+  }
+  void _passStatusVisibility(bool arg){
+    passStatusVisibility = arg == false ? 0 : 1;
+    print(passStatusVisibility);
   }
 
   Future<bool> _connectTo(device) async {
@@ -185,12 +202,7 @@ class _HomeState extends State<Home> {
           color: Colors.blueAccent,
           child: Column(
             children: <Widget>[
-              LockStatus((){
-                setState(() {
-                  _page = 0;
-                  bottomNavbarIndex = 0;
-                });
-              }),
+              LockStatus(passStatusVisibility),
               Expanded(child: pageLoad()),
             ],
           ),
@@ -200,7 +212,13 @@ class _HomeState extends State<Home> {
   pageLoad() {
     switch (_page) {
       case 0:
-        return UserPage();
+        return UserPage(
+          passStatus: (bool onValue){
+            setState(() {
+              _passStatusVisibility(onValue);
+            });
+          },
+        );
       case 1:
         return ControlPage(
           port: uport,
@@ -217,8 +235,8 @@ class _HomeState extends State<Home> {
 }
 
 class LockStatus extends StatefulWidget {
-  Function changePage;
-  LockStatus(this.changePage);
+  int passStatusVisibility;
+  LockStatus(this.passStatusVisibility);
   @override
   _LockStatusState createState() => _LockStatusState();
 }
@@ -238,19 +256,24 @@ class _LockStatusState extends State<LockStatus> {
                 StatusButton(
                   icon: lockIcon,
                   text: lockstatus,
-                  myfunction: widget.changePage,
                 ),
               ],
             ),
             Column(
               children: <Widget>[
-                StatusButton(
-                    icon: Icons.vpn_key,
-                    text: "PSSWD ISN'T CREATED",
-                    myfunction: () {
-                      showAlertDialog(context: context,header: "WARNING SECURITY ISSUES FOUND",message: "CONTROL PASSWORD IS NOT SET,"
-                          " GO TO USER PAGE TO SPECIFY A PASSWORD");
-                    }),
+                IndexedStack(
+                  index: widget.passStatusVisibility ,
+                  children: <Widget>[
+                  StatusButton(
+                      icon: Icons.vpn_key,
+                      text: "PSSWD ISN'T CREATED",
+                      myfunction: () {
+                        showAlertDialog(context: context,header: "WARNING SECURITY ISSUES FOUND",message: "CONTROL PASSWORD IS NOT SET,"
+                            " GO TO USER PAGE TO SPECIFY A PASSWORD");
+                      }),
+                    Container(),
+                  ]
+                )
               ],
             ),
           ],
@@ -260,29 +283,3 @@ class _LockStatusState extends State<LockStatus> {
   }
 }
 
-class RadStatus extends StatefulWidget {
-  @override
-  _RadStatusState createState() => _RadStatusState();
-}
-
-class _RadStatusState extends State<RadStatus> {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Container(
-            child:
-                Text('Deliver features faster', textAlign: TextAlign.center)),
-        Container(
-            child: Text('Craft beautiful UIs', textAlign: TextAlign.center)),
-        Container(
-          child: FittedBox(
-            fit: BoxFit.contain, // otherwise the logo will be tiny
-            child: const FlutterLogo(),
-          ),
-        ),
-      ],
-    );
-  }
-}
