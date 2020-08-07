@@ -2,23 +2,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_numpad_widget/flutter_numpad_widget.dart';
 import '../services/sign.dart';
+import '../pages/home.dart';
 
 class UserPage extends StatefulWidget {
   @override
   _UserPageState createState() => _UserPageState();
+  UserPage({this.passStatus});
+  Function(bool) passStatus;
   String infoLabel = "",
       topMenuLabel = "",
       userName = "suser01",
       bufferedPassword = "";
 
-      int decisionIndex = 1, topMenu = 1, topMenuLabelStack = 1;
+  int decisionIndex = 1, topMenu = 1, topMenuLabelStack = 1;
+  int action = -1;
 
-      bool masterPass = false,
+  bool masterPass = false,
       signed = false,
       logged = false,
       passRemovePhase = false,
       passRemoveFlag = false;
-      Color topMenuLabelColor = Colors.red;
+  Color topMenuLabelColor = Colors.red;
 }
 
 class _UserPageState extends State<UserPage> {
@@ -29,44 +33,54 @@ class _UserPageState extends State<UserPage> {
   @override
   void initState() {
     super.initState();
+    _numpadController.clear();
   }
 
   listener() {
     print(widget.masterPass);
-
-    if (_numpadController.rawString == "2020" && widget.masterPass) {
-      print("godsake");
-      _numpadController.clear();
-      setState(() {
-        widget.infoLabel =
-            "MASTER PASSWORD CORRECT!\nYOU ARE ABOUT TO SET USER PASSWORD\nPLEASE WRITE 4 DIGIT PASS TO CREATE!";
-        widget.masterPass = false;
-        widget.decisionIndex = 1;
-        _numpadController.clear();
-      });
-    } else if (!widget.masterPass && _numpadController.rawString?.length == 4) {
-      setState(() {
-        widget.decisionIndex = 0;
-        widget.infoLabel =
-            "\"${_numpadController.rawString}\" WILL BE USER PASSWORD ? \n IF NOT YOU CAN EDIT NOW";
-        widget.masterPass = false;
-      });
-    }if (!widget.masterPass && widget.passRemovePhase && widget.bufferedPassword == _numpadController.rawString && !widget.passRemoveFlag) {
-      setState(() {
-        widget.infoLabel = "WRITE AGAIN TO REMOVE ";
-        _numpadController.clear();
-        widget.passRemoveFlag = true;
-      });
-    }else if (!widget.masterPass && widget.passRemovePhase && widget.bufferedPassword == _numpadController.rawString && widget.passRemoveFlag) {
-      print("clear babe");
-      Sign().clearSharedPred().then((onValue) {
-        setState(() {
-          widget.infoLabel = "         SUCCED         ";
+    switch(widget.action){
+      case 0:{
+        if (_numpadController.rawString == "2020") {
+          print("godsake");
           _numpadController.clear();
-          widget.passRemoveFlag = false;
-          widget.passRemovePhase = false;
-        });
-      });
+          setState(() {
+            widget.infoLabel =
+            "MASTER PASSWORD CORRECT!\nYOU ARE ABOUT TO SET USER PASSWORD\nPLEASE WRITE 4 DIGIT PASS TO CREATE!";
+            widget.masterPass = true;
+            widget.decisionIndex = 1;
+            _numpadController.clear();
+          });
+        } else if ( _numpadController.rawString?.length == 4 && widget.masterPass) {
+          setState(() {
+            widget.decisionIndex = 0;
+            widget.infoLabel =
+            "\"${_numpadController.rawString}\" WILL BE USER PASSWORD ? \n IF NOT YOU CAN EDIT NOW";
+            widget.masterPass = false;
+          });
+        }
+      }break;
+      case 1:{
+
+      }break;
+      case 2:{
+        if (widget.passRemovePhase && widget.bufferedPassword == _numpadController.rawString && !widget.passRemoveFlag) {
+          setState(() {
+            widget.infoLabel = "WRITE AGAIN TO REMOVE ";
+            _numpadController.clear();
+            widget.passRemoveFlag = true;
+          });
+        } else if (widget.passRemovePhase && widget.bufferedPassword == _numpadController.rawString && widget.passRemoveFlag) {
+          Sign().clearSharedPred().then((onValue) {
+            setState(() {
+              widget.infoLabel = "         SUCCED         ";
+              _numpadController.clear();
+              widget.passRemoveFlag = false;
+              widget.passRemovePhase = false;
+              widget.passStatus(false);
+            });
+          });
+      }
+    }
     }
   }
 
@@ -164,6 +178,7 @@ class _UserPageState extends State<UserPage> {
                                               "         SUCCED         ";
                                           widget.decisionIndex = 1;
                                           _numpadController.clear();
+                                          widget.passStatus(true);
                                         }
                                       });
                                     },
@@ -270,10 +285,9 @@ class _UserPageState extends State<UserPage> {
                         color: Colors.white,
                         onPressed: () {
                           setState(() {
-                            Sign()
-                                .isSignedBefore(widget.userName)
-                                .then((onValue) {
-                                  widget.masterPass = true;
+                            _numpadController.clear();
+                            widget.action = 0;
+                            Sign().isSignedBefore(widget.userName).then((onValue) {
                               if (!onValue) {
                                 widget.topMenu = 0;
                                 widget.decisionIndex = 1;
@@ -283,7 +297,6 @@ class _UserPageState extends State<UserPage> {
                               } else {
                                 setState(() {
                                   widget.topMenuLabel = "SIGNED BEFORE !!!";
-                                  widget.topMenuLabelColor = Colors.red;
                                   widget.topMenuLabelStack = 0;
                                 });
                                 print("signed before");
@@ -311,9 +324,17 @@ class _UserPageState extends State<UserPage> {
                         color: Colors.white,
                         onPressed: () {
                           setState(() {
-                            widget.topMenuLabel = "";
-                            widget.topMenuLabelColor = Colors.blueGrey;
-                          });
+                            _numpadController.clear();
+                            widget.topMenuLabelStack = 0;
+                            Sign().isSignedBefore(widget.userName).then((onValue) {
+                              if(onValue){
+                              }
+                              else{
+                                  widget.topMenuLabelStack = 0;
+                                  widget.topMenuLabel = "NOT SIGNED BEFORE !";
+                              }
+                            });
+                           });
                         },
                         iconSize: 90,
                       ),
@@ -334,19 +355,16 @@ class _UserPageState extends State<UserPage> {
                         color: Colors.white,
                         onPressed: () {
                           setState(() {
-                            widget.topMenuLabel = "";
-                            widget.topMenuLabelColor = Colors.blueGrey;
-                            Sign()
-                                .isSignedBefore(widget.userName)
-                                .then((onValue) {
+                            _numpadController.clear();
+                            widget.topMenuLabelStack = 1;
+                            Sign().isSignedBefore(widget.userName).then((onValue) {
                               if (onValue) {
+                                widget.action = 2;
                                 widget.topMenu = 0;
                                 widget.decisionIndex = 1;
                                 this._numpadController.addListener(listener);
                                 widget.infoLabel = "FIRST WRITE USER PASSWORD!";
-                                Sign()
-                                    .getSharedPrefs(widget.userName)
-                                    .then((onValue) {
+                                Sign().getSharedPrefs(widget.userName).then((onValue) {
                                   widget.bufferedPassword = onValue;
                                 });
                                 widget.passRemovePhase = true;

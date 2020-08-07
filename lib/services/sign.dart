@@ -2,7 +2,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Sign{
   static bool ok;
-
   isSignedBefore(userName) async{
     try {
      await getSharedPrefs(userName).then((value){
@@ -46,6 +45,10 @@ class Sign{
   putSharedPref(key, value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(key, value);
+  }
+  clearSharedPred() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
   }
 
 
