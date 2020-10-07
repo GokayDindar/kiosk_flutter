@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_numpad_widget/flutter_numpad_widget.dart';
+import 'package:provider/provider.dart';
 import '../services/sign.dart';
 import '../pages/home.dart';
+import '../services/provider.dart';
 
 class UserPage extends StatefulWidget {
   @override
   _UserPageState createState() => _UserPageState();
-  UserPage({this.passStatus});
-  Function(bool) passStatus;
+
   String infoLabel = "",
       topMenuLabel = "",
       userName = "suser01",
@@ -75,8 +76,7 @@ class _UserPageState extends State<UserPage> {
               widget.infoLabel = "         SUCCED         ";
               _numpadController.clear();
               widget.passRemoveFlag = false;
-              widget.passRemovePhase = false;
-              widget.passStatus(false);
+              Provider.of<AllProvider>(context).changePassStatus(0);
             });
           });
       }
@@ -178,7 +178,7 @@ class _UserPageState extends State<UserPage> {
                                               "         SUCCED         ";
                                           widget.decisionIndex = 1;
                                           _numpadController.clear();
-                                          widget.passStatus(true);
+                                          Provider.of<AllProvider>(context).changePassStatus(1);
                                         }
                                       });
                                     },
@@ -295,7 +295,7 @@ class _UserPageState extends State<UserPage> {
                                 widget.infoLabel =
                                     "FIRST WRITE MASTER PASSWORD!\nIF YOU DONT KNOW, ASK SUPERVISER FOR HELP \nOR CALL MODEDOOR +905386896503\nDevice id:7821";
                               } else {
-                                setState(() {
+                                setState(() { //TODO : SET STATE ERROR
                                   widget.topMenuLabel = "SIGNED BEFORE !!!";
                                   widget.topMenuLabelStack = 0;
                                 });
@@ -305,19 +305,19 @@ class _UserPageState extends State<UserPage> {
                           });
                           //Sign().doSign("d123", "userPassword");
                         },
-                        iconSize: 90,
+                        iconSize: 80,
                       ),
                       Text(
-                        "SIGN IN ",
+                        "              CREATE\nOPERATION PASSWORD",
                         style: TextStyle(
                             fontSize: 20,
-                            color: Colors.white,
+                            color: Colors.white70,
                             fontStyle: FontStyle.italic,
                             fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                  Column(
+                /*  Column(
                     children: <Widget>[
                       IconButton(
                         icon: Icon(Icons.assignment_ind),
@@ -328,6 +328,7 @@ class _UserPageState extends State<UserPage> {
                             widget.topMenuLabelStack = 0;
                             Sign().isSignedBefore(widget.userName).then((onValue) {
                               if(onValue){
+
                               }
                               else{
                                   widget.topMenuLabelStack = 0;
@@ -347,7 +348,7 @@ class _UserPageState extends State<UserPage> {
                             fontWeight: FontWeight.bold),
                       ),
                     ],
-                  ),
+                  ),*/
                   Column(
                     children: <Widget>[
                       IconButton(
@@ -370,7 +371,7 @@ class _UserPageState extends State<UserPage> {
                                 widget.passRemovePhase = true;
                               } else {
                                 setState(() {
-                                  widget.topMenuLabel = "NOT SIGNED BEFORE !!!";
+                                  widget.topMenuLabel = "NOT CREATED BEFORE !!!";
                                   widget.topMenuLabelStack = 0;
                                 });
                                 print("not signed before");
@@ -381,10 +382,10 @@ class _UserPageState extends State<UserPage> {
                         iconSize: 90,
                       ),
                       Text(
-                        "REMOVE\nPASSWORD ",
+                        "REMOVE\nCURRENT PASSWORD ",
                         style: TextStyle(
                             fontSize: 20,
-                            color: Colors.white,
+                            color: Colors.white70,
                             fontStyle: FontStyle.italic,
                             fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,

@@ -36,6 +36,27 @@ class Sign{
       print(e);
     }
   }
+  doLogin(userName,userPassword) async{
+    try {
+      this.isSignedBefore(userName).then((onValue){
+        if(onValue){
+          this.putSharedPref(userName, userPassword);
+          print("not signed before");
+        }
+        else{
+          try{
+
+          }
+          catch(e){
+            print(e);
+          }
+        }
+      });
+    }
+    catch (e){
+      print(e);
+    }
+  }
 
   Future<String> getSharedPrefs(toGet) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
