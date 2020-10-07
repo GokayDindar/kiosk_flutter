@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import '../custom_widgets/controlButton.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
-import '../foolib.dart';
-import 'dart:async';
-import 'package:usb_serial/transaction.dart';
+import '../services/provider.dart';
 
 class ControlPage extends StatefulWidget {
   final UsbPort port;
   final UsbDevice udevice;
+
 
   ControlPage({this.port,this.udevice});
   @override
@@ -42,7 +41,7 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_left,
                       text: "HALF OPEN",
                       myfunction: () {
-                        String data = "half-open" + "\n";
+                        String data = "halfopen" + "\n";
                         widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
@@ -64,7 +63,7 @@ class _ControlPageState extends State<ControlPage> {
                       icon: Icons.chevron_right,
                       text: "HALF CLOSE",
                       myfunction: () {
-                        String data = "half-close" + "\n";
+                        String data = "halfclose" + "\n";
                         widget.port.write(Uint8List.fromList(data.codeUnits));
                       }),
                 ],
