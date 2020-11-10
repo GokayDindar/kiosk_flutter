@@ -1,1 +1,1 @@
-# general purpose machine oparating interface using flutter sdk 
+# general purpose machine operating interface using flutter sdk 
